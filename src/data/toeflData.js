@@ -1,993 +1,460 @@
-export const examBlueprint = [
+export const officialResources = [
+  {
+    title: "ETS Test Content",
+    label: "官方题型与时间",
+    description: "核对新版 TOEFL iBT 的 Reading, Listening, Writing, Speaking 结构、题量和计时。",
+    url: "https://www.ets.org/toefl/test-takers/ibt/about/content.html",
+  },
+  {
+    title: "Official TOEFL Prep",
+    label: "官方练习入口",
+    description: "ETS 官方备考资源中心，包含样题、备考提示和可购买练习资源。",
+    url: "https://www.ets.org/toefl/test-takers/ibt/prepare.html",
+  },
+  {
+    title: "TOEFL TestReady",
+    label: "官方 TPO/真题入口",
+    description: "官方平台中的 TPO 使用 authentic test questions，适合作为正式模考材料。",
+    url: "https://www.cn.ets.org/toefl/china/toefl/toefl-testready.html",
+  },
+  {
+    title: "Official Guide",
+    label: "纸质/电子授权资料",
+    description: "ETS 官方指南包含真实 TOEFL iBT 题目、完整练习测试和评分说明。",
+    url: "https://www.etsglobal.org/mt/en/preparation-tool/official-guide-toefl-ibt-test---sixth-edition",
+  },
+];
+
+export const sectionSpecs = [
   {
     id: "reading",
-    label: "Reading",
-    cn: "阅读",
-    official: "50 items / 30 min",
-    focus: "长篇学术文本、句间逻辑、信息定位、摘要整合",
-    target: "快速定位段落功能，稳定抓住作者意图",
+    label: "阅读",
+    english: "Reading",
+    officialItems: 50,
+    officialMinutes: 30,
+    accent: "#1463e8",
+    tasks: ["Complete the Words", "Read in Daily Life", "Read an Academic Passage"],
   },
   {
     id: "listening",
-    label: "Listening",
-    cn: "听力",
-    official: "47 items / 29 min",
-    focus: "Lecture 与 campus conversation 的主旨、态度、结构笔记",
-    target: "听出层级结构，笔记从抄词改成抓关系",
-  },
-  {
-    id: "speaking",
-    label: "Speaking",
-    cn: "口语",
-    official: "11 items / 8 min",
-    focus: "限时组织、综合复述、发音清晰度、连贯表达",
-    target: "45 秒内完成观点、理由、例子的闭环",
+    label: "听力",
+    english: "Listening",
+    officialItems: 47,
+    officialMinutes: 29,
+    accent: "#0f9f8f",
+    tasks: [
+      "Listen and Choose a Response",
+      "Listen to a Conversation",
+      "Listen to an Announcement",
+      "Listen to an Academic Talk",
+    ],
   },
   {
     id: "writing",
-    label: "Writing",
-    cn: "写作",
-    official: "12 items / 23 min",
-    focus: "Build a Sentence、Email、Academic Discussion",
-    target: "句法准确、语气得体、论证具体",
+    label: "写作",
+    english: "Writing",
+    officialItems: 12,
+    officialMinutes: 23,
+    accent: "#2563eb",
+    tasks: ["Build a Sentence", "Write an Email", "Write for an Academic Discussion"],
   },
 ];
 
-export const initialSkillProfile = {
-  reading: 3.7,
-  listening: 3.5,
-  speaking: 3.1,
-  writing: 3.4,
-};
+export const mockSections = [
+  {
+    id: "reading",
+    label: "阅读",
+    english: "Reading",
+    minutes: 30,
+    instruction:
+      "Read the passage carefully. Answer each question based only on information in the passage.",
+    blocks: [
+      {
+        id: "r-urban-green",
+        title: "The Impact of Urban Green Spaces on Well-Being",
+        type: "passage",
+        passage: `Cities around the world are growing rapidly. As more people live in urban areas, the way cities are designed has a major influence on residents' quality of life. One important feature is the presence of green spaces such as parks, gardens, and tree-lined streets.
 
-export const diagnosticItems = [
-  {
-    id: "r1",
-    skill: "reading",
-    type: "choice",
-    title: "Academic Reading: ecology",
-    time: "2:30",
-    prompt:
-      "In coastal wetlands, young plants often survive only when neighboring species reduce wind exposure. This relationship does not remove competition; instead, it changes when competition becomes important.",
-    question:
-      "Which statement best expresses the main idea of the passage?",
-    options: [
-      "Coastal plants grow best without neighboring species.",
-      "Competition is always more important than protection.",
-      "Neighboring species can protect young plants before competition becomes dominant.",
-      "Wind exposure has little influence on wetland plants.",
+Research shows that green spaces can improve both physical and mental health. People who live near parks are more likely to exercise, report lower stress levels, and experience greater life satisfaction. Green spaces can also reduce air pollution and urban heat by absorbing pollutants and providing shade.
+
+However, the benefits of green spaces are not automatic. A small park surrounded by heavy traffic may be less useful than a connected network of quiet paths and accessible playgrounds. For this reason, many city planners now focus not only on adding green space but also on making it easy and pleasant for residents to use.`,
+        questions: [
+          {
+            id: "r1",
+            type: "choice",
+            skill: "main idea",
+            stem: "Which statement best expresses the main idea of the passage?",
+            options: [
+              "Urban green spaces can support health, but their design and accessibility matter.",
+              "Urban residents should move away from large cities whenever possible.",
+              "Parks are useful only when they are surrounded by heavy traffic.",
+              "City planners have stopped building playgrounds in modern cities.",
+            ],
+            answer: 0,
+          },
+          {
+            id: "r2",
+            type: "choice",
+            skill: "detail purpose",
+            stem: "Why does the passage mention air pollution and urban heat?",
+            options: [
+              "To explain why parks are usually too expensive to maintain",
+              "To give examples of environmental problems green spaces can reduce",
+              "To show that green spaces are useful only in cold climates",
+              "To argue that physical exercise is less important than shade",
+            ],
+            answer: 1,
+          },
+          {
+            id: "r3",
+            type: "choice",
+            skill: "inference",
+            stem: "What can be inferred about a connected network of paths?",
+            options: [
+              "It may make green spaces easier for residents to use regularly.",
+              "It is less valuable than a single small park near traffic.",
+              "It prevents city planners from adding trees.",
+              "It is useful only for people who already exercise daily.",
+            ],
+            answer: 0,
+          },
+          {
+            id: "r4",
+            type: "choice",
+            skill: "vocabulary",
+            stem: "The word accessible in the passage is closest in meaning to",
+            options: ["easy to reach", "difficult to design", "recently built", "privately owned"],
+            answer: 0,
+          },
+        ],
+      },
+      {
+        id: "r-ancient-dyes",
+        title: "Ancient Dyes and Trade",
+        type: "passage",
+        passage: `Before synthetic dyes became common in the nineteenth century, many colors used in cloth came from plants, minerals, or insects. Some dyes were easy to produce locally, but others required rare materials and specialized knowledge. A deep purple dye made from sea snails, for example, was so costly that it became associated with wealth and political power.
+
+Dyes can help historians trace trade connections. If a piece of cloth contains a colorant that did not exist in the region where the cloth was found, researchers can ask whether the cloth itself was imported or whether the dye material traveled separately. Chemical analysis is especially useful because written records often mention finished goods but not the ingredients used to make them.
+
+The study of dyes therefore connects art history, chemistry, and economics. A small thread from an old textile can reveal information about technology, social status, and exchange networks across long distances.`,
+        questions: [
+          {
+            id: "r5",
+            type: "choice",
+            skill: "author purpose",
+            stem: "Why does the author discuss purple dye made from sea snails?",
+            options: [
+              "To show that some colors required rare materials and became status symbols",
+              "To prove that synthetic dyes were invented earlier than historians thought",
+              "To explain why sea snails disappeared from ancient markets",
+              "To argue that all ancient dyes were inexpensive",
+            ],
+            answer: 0,
+          },
+          {
+            id: "r6",
+            type: "choice",
+            skill: "sentence function",
+            stem: "What role does chemical analysis play in the passage?",
+            options: [
+              "It replaces the need to study cloth.",
+              "It helps identify materials not described fully in written records.",
+              "It shows that trade connections were unimportant.",
+              "It proves that finished goods were never imported.",
+            ],
+            answer: 1,
+          },
+          {
+            id: "r7",
+            type: "choice",
+            skill: "summary",
+            stem: "Which sentence best summarizes the passage?",
+            options: [
+              "Ancient dyes are useful evidence for understanding technology, status, and trade.",
+              "Synthetic dyes were more expensive than all natural dyes.",
+              "Historians can study trade only by reading government records.",
+              "Old textiles rarely contain information about the societies that produced them.",
+            ],
+            answer: 0,
+          },
+          {
+            id: "r8",
+            type: "choice",
+            skill: "inference",
+            stem: "What can be inferred if a cloth contains a dye not found locally?",
+            options: [
+              "The cloth or dye material may have moved through trade.",
+              "The cloth must be a modern copy.",
+              "The region had no textile production.",
+              "The dye was probably synthetic.",
+            ],
+            answer: 0,
+          },
+        ],
+      },
     ],
-    answer: 2,
-    concept: "main idea + contrast",
   },
   {
-    id: "r2",
-    skill: "reading",
-    type: "choice",
-    title: "Academic Reading: urban history",
-    time: "2:10",
-    prompt:
-      "The first electric streetcars did not simply move people faster. By making longer commutes practical, they changed where families could live and where businesses chose to locate.",
-    question:
-      "The author mentions longer commutes to show that electric streetcars",
-    options: [
-      "reduced the need for public transportation.",
-      "changed the spatial organization of cities.",
-      "were used mostly by business owners.",
-      "made city centers less important immediately.",
+    id: "listening",
+    label: "听力",
+    english: "Listening",
+    minutes: 29,
+    instruction:
+      "Listen to each conversation or academic talk. During the real test, transcripts are not shown until review.",
+    blocks: [
+      {
+        id: "l-library",
+        title: "Campus Conversation: Reserving a Study Room",
+        type: "audio",
+        duration: "2:05",
+        audioCue: "Student speaks with a librarian about finding a quiet room before exams.",
+        transcript: `Student: Hi, I tried to reserve a group study room for Thursday evening, but the system says everything is full.
+
+Librarian: That happens during exam week. Are you meeting with a group, or do you mainly need a quiet place?
+
+Student: Actually, I need to record a short presentation. I thought a group room would be best because it has a door.
+
+Librarian: In that case, try a media room. Those are smaller, but they have a microphone and better sound insulation. You can reserve one for one hour.
+
+Student: That sounds even better. Do I need special permission?
+
+Librarian: No. Just bring your student ID when you check in.`,
+        questions: [
+          {
+            id: "l1",
+            type: "choice",
+            skill: "conversation purpose",
+            stem: "Why does the student go to the library desk?",
+            options: [
+              "To ask why her student ID stopped working",
+              "To find a quiet room for recording a presentation",
+              "To complain about a damaged microphone",
+              "To request permission to miss an exam",
+            ],
+            answer: 1,
+          },
+          {
+            id: "l2",
+            type: "choice",
+            skill: "speaker purpose",
+            stem: "Why does the librarian suggest a media room?",
+            options: [
+              "It better matches the student's actual need.",
+              "It is the only room that does not require a reservation.",
+              "It allows large groups to meet during exams.",
+              "It is farther from the library entrance.",
+            ],
+            answer: 0,
+          },
+          {
+            id: "l3",
+            type: "choice",
+            skill: "detail",
+            stem: "What does the student need to bring when checking in?",
+            options: ["A printed script", "A signed permission form", "A student ID", "A laptop charger"],
+            answer: 2,
+          },
+        ],
+      },
+      {
+        id: "l-ecology",
+        title: "Academic Talk: Forest Edges",
+        type: "audio",
+        duration: "2:35",
+        audioCue: "Professor explains why the edge of a forest can be different from the interior.",
+        transcript: `Professor: Today we are going to talk about edge effects. When a forest is divided by a road or a farm field, the new boundary is not just a line on a map. Conditions near that boundary can change.
+
+For example, more sunlight and wind may reach the edge than the interior. The soil can become warmer and drier, which favors some plants but makes it harder for others to survive.
+
+Animals also respond differently. Some birds avoid edges because predators can move more easily there. Other species prefer edges because they can find food from both the forest and the open area.
+
+So when scientists measure habitat loss, they cannot simply count the amount of forest that remains. They also need to ask how much of that forest has been changed by new edges.`,
+        questions: [
+          {
+            id: "l4",
+            type: "choice",
+            skill: "main idea",
+            stem: "What is the main topic of the talk?",
+            options: [
+              "How forest edges can change environmental conditions and animal behavior",
+              "Why roads should always be built inside forests",
+              "How farmers choose the best trees for open fields",
+              "Why all birds prefer the center of a forest",
+            ],
+            answer: 0,
+          },
+          {
+            id: "l5",
+            type: "choice",
+            skill: "organization",
+            stem: "How does the professor organize the talk?",
+            options: [
+              "By comparing two famous scientists",
+              "By defining a concept and then giving plant and animal examples",
+              "By listing events in strict historical order",
+              "By describing one experiment without explanation",
+            ],
+            answer: 1,
+          },
+          {
+            id: "l6",
+            type: "choice",
+            skill: "inference",
+            stem: "What can be inferred about measuring habitat loss?",
+            options: [
+              "Area alone may not show how much habitat quality has changed.",
+              "Only birds should be included in habitat studies.",
+              "Scientists no longer study roads or farm fields.",
+              "Forest interiors are always warmer than edges.",
+            ],
+            answer: 0,
+          },
+        ],
+      },
     ],
-    answer: 1,
-    concept: "purpose of detail",
   },
   {
-    id: "r3",
-    skill: "reading",
-    type: "choice",
-    title: "Academic Reading: psychology",
-    time: "2:40",
-    prompt:
-      "Researchers found that students remembered complex ideas better after generating their own examples. The examples were sometimes imperfect, but the effort required students to connect abstract concepts to prior knowledge.",
-    question:
-      "What can be inferred about imperfect examples?",
-    options: [
-      "They can still support learning if they require active thinking.",
-      "They prevent students from understanding abstract concepts.",
-      "They are useful only when a teacher corrects them immediately.",
-      "They work because they reduce the effort of learning.",
+    id: "writing",
+    label: "写作",
+    english: "Writing",
+    minutes: 23,
+    instruction:
+      "Write clearly and directly. Use specific reasons or examples. The word counter updates as you type.",
+    blocks: [
+      {
+        id: "w-sentence",
+        title: "Build a Sentence",
+        type: "writing",
+        prompt: "Combine the ideas into the clearest sentence: the museum extended evening hours; more students visited; the change happened during final exams.",
+        questions: [
+          {
+            id: "w1",
+            type: "choice",
+            skill: "sentence control",
+            stem: "Choose the best sentence.",
+            options: [
+              "During final exams, the museum extended evening hours, which led more students to visit.",
+              "The museum, which students, extended final exams and hours.",
+              "More students visited because final exams extended the museum.",
+              "Evening hours were students and the museum visited final exams.",
+            ],
+            answer: 0,
+          },
+        ],
+      },
+      {
+        id: "w-email",
+        title: "Write an Email",
+        type: "writing",
+        prompt:
+          "Your teacher has offered two project options: a poster presentation or a short research paper. Write an email explaining which option you choose and why.",
+        questions: [
+          {
+            id: "w2",
+            type: "text",
+            skill: "email tone",
+            minWords: 80,
+            stem: "Write a polite email with a greeting, clear choice, reasons, and closing.",
+          },
+        ],
+      },
+      {
+        id: "w-discussion",
+        title: "Academic Discussion",
+        type: "writing",
+        prompt:
+          "Professor: Some cities are replacing large parking lots with parks and bike lanes. Is this a good use of public space?",
+        questions: [
+          {
+            id: "w3",
+            type: "text",
+            skill: "argument development",
+            minWords: 110,
+            stem: "Contribute to the discussion. State your position and support it with a specific example.",
+          },
+        ],
+      },
     ],
-    answer: 0,
-    concept: "inference",
-  },
-  {
-    id: "l1",
-    skill: "listening",
-    type: "choice",
-    title: "Lecture: astronomy",
-    time: "1:40",
-    audioCue: "Professor explains why early telescopes changed more than image size.",
-    transcript:
-      "Early telescopes were valuable not only because they magnified distant objects. They also made repeated observation possible. When astronomers could compare drawings night after night, they began to notice patterns that a single observation would miss.",
-    question:
-      "What point does the professor emphasize about early telescopes?",
-    options: [
-      "They were mainly useful for public demonstrations.",
-      "They helped scientists compare observations over time.",
-      "They immediately proved all earlier theories wrong.",
-      "They were too inaccurate for scientific work.",
-    ],
-    answer: 1,
-    concept: "lecture emphasis",
-  },
-  {
-    id: "l2",
-    skill: "listening",
-    type: "choice",
-    title: "Conversation: campus library",
-    time: "1:25",
-    audioCue: "Student asks librarian about reserving a quiet study room.",
-    transcript:
-      "The librarian explains that group rooms are fully booked before exams, but the student can reserve a media room if she only needs a quiet place to record a presentation.",
-    question:
-      "Why does the librarian suggest a media room?",
-    options: [
-      "It has better lighting for group meetings.",
-      "It is the only room with printed books.",
-      "It fits the student's actual need even though group rooms are full.",
-      "It allows students to avoid reservations.",
-    ],
-    answer: 2,
-    concept: "speaker purpose",
-  },
-  {
-    id: "l3",
-    skill: "listening",
-    type: "choice",
-    title: "Lecture: note structure",
-    time: "1:50",
-    audioCue: "Professor compares two explanations for a behavioral change.",
-    transcript:
-      "The professor first describes the climate explanation, then says it cannot account for all the evidence. She introduces a second explanation involving food supply and uses a recent study to support it.",
-    question:
-      "Which note format would best capture the lecture structure?",
-    options: [
-      "Definition, example, unrelated story",
-      "Problem, two explanations, evidence for the second",
-      "Chronological list of dates",
-      "Personal opinion, class discussion, assignment",
-    ],
-    answer: 1,
-    concept: "lecture organization",
-  },
-  {
-    id: "s1",
-    skill: "speaking",
-    type: "open",
-    title: "Speaking: independent response",
-    time: "45s",
-    prompt:
-      "Some students prefer to study one subject for a long block of time. Others prefer to switch subjects every hour. Which do you prefer and why?",
-    question:
-      "Type the answer you would say aloud. Aim for a clear opinion, two reasons, and one concrete example.",
-    concept: "fluency + development",
-    minWords: 45,
-  },
-  {
-    id: "s2",
-    skill: "speaking",
-    type: "open",
-    title: "Speaking: integrated response",
-    time: "60s",
-    prompt:
-      "Reading: A school plans to extend library hours during exam week. Listening: A student agrees because quiet study rooms are hard to find after dinner.",
-    question:
-      "Summarize the proposal and explain why the student supports it.",
-    concept: "integrated summary",
-    minWords: 55,
-  },
-  {
-    id: "w1",
-    skill: "writing",
-    type: "choice",
-    title: "Writing: Build a Sentence",
-    time: "1:20",
-    prompt:
-      "Combine the ideas into the most precise sentence: the museum added evening hours; more students visited; the change happened during final exams.",
-    question: "Choose the best sentence.",
-    options: [
-      "During final exams, the museum added evening hours, which led more students to visit.",
-      "The museum, which students, added final exams and hours.",
-      "More students visited because final exams added the museum.",
-      "Evening hours were students and the museum visited final exams.",
-    ],
-    answer: 0,
-    concept: "sentence precision",
-  },
-  {
-    id: "w2",
-    skill: "writing",
-    type: "open",
-    title: "Writing: Email",
-    time: "6:00",
-    prompt:
-      "Your teacher has offered two project options: a poster presentation or a short research paper. Write an email explaining which option you choose and why.",
-    question:
-      "Write a polite email with a greeting, clear choice, reasons, and closing.",
-    concept: "email tone + clarity",
-    minWords: 70,
-  },
-  {
-    id: "w3",
-    skill: "writing",
-    type: "open",
-    title: "Writing: Academic Discussion",
-    time: "8:00",
-    prompt:
-      "Professor: Some cities are replacing large parking lots with parks and bike lanes. Is this a good use of public space?",
-    question:
-      "Contribute to the discussion. State your position, respond to the issue, and support your answer with a specific example.",
-    concept: "argument + support",
-    minWords: 95,
-  },
-  {
-    id: "r4",
-    skill: "reading",
-    type: "choice",
-    title: "Academic Reading: geology",
-    time: "2:20",
-    prompt:
-      "Volcanic ash layers are useful to geologists because they can be matched across distant sites. If the same ash layer appears in two valleys, researchers can compare the age of nearby sediments even when the valleys contain different fossils.",
-    question: "Why are volcanic ash layers useful?",
-    options: [
-      "They preserve every fossil in the same condition.",
-      "They allow researchers to compare the age of sediments across locations.",
-      "They show that all valleys were formed by volcanoes.",
-      "They replace the need for field observation.",
-    ],
-    answer: 1,
-    concept: "detail function",
-  },
-  {
-    id: "r5",
-    skill: "reading",
-    type: "choice",
-    title: "Academic Reading: biology",
-    time: "2:15",
-    prompt:
-      "Some desert animals reduce water loss by becoming active at night. This behavior also changes their feeding patterns because many insects are easier to find after temperatures fall.",
-    question: "What can be inferred about nighttime activity?",
-    options: [
-      "It only protects animals from predators.",
-      "It can influence both survival and access to food.",
-      "It makes insects disappear from desert habitats.",
-      "It is unrelated to temperature.",
-    ],
-    answer: 1,
-    concept: "inference",
-  },
-  {
-    id: "r6",
-    skill: "reading",
-    type: "choice",
-    title: "Academic Reading: anthropology",
-    time: "2:35",
-    prompt:
-      "Archaeologists once assumed that large storage buildings indicated centralized political control. More recent work suggests that some communities built shared storage to manage seasonal food shortages without a permanent ruler.",
-    question: "The passage mainly contrasts",
-    options: [
-      "two interpretations of the same evidence.",
-      "two unrelated building techniques.",
-      "the diet of rulers and farmers.",
-      "seasonal shortages in different climates.",
-    ],
-    answer: 0,
-    concept: "contrast relationship",
-  },
-  {
-    id: "r7",
-    skill: "reading",
-    type: "choice",
-    title: "Academic Reading: art history",
-    time: "2:30",
-    prompt:
-      "The painter's early portraits appear restrained, but later works reveal a bolder use of color. This shift did not happen suddenly; it emerged after years of experiments with stage lighting.",
-    question: "In the passage, restrained is closest in meaning to",
-    options: ["limited", "famous", "expensive", "unfinished"],
-    answer: 0,
-    concept: "vocabulary in context",
-  },
-  {
-    id: "r8",
-    skill: "reading",
-    type: "choice",
-    title: "Academic Reading: environmental science",
-    time: "2:45",
-    prompt:
-      "When rivers are straightened to prevent flooding, water often moves faster downstream. The immediate area may become safer, but communities farther away can face higher flood peaks.",
-    question: "Which sentence best summarizes the passage?",
-    options: [
-      "Straightening rivers always eliminates flooding.",
-      "Flood control in one area can increase risk in another area.",
-      "Downstream communities rarely experience floods.",
-      "Rivers move more slowly after engineering projects.",
-    ],
-    answer: 1,
-    concept: "summary",
-  },
-  {
-    id: "r9",
-    skill: "reading",
-    type: "choice",
-    title: "Academic Reading: education",
-    time: "2:25",
-    prompt:
-      "The author describes a classroom in which students solve problems before receiving formulas. The description is used to show that struggle can make later instruction more meaningful.",
-    question: "Why does the author describe the classroom?",
-    options: [
-      "To criticize teachers who use formulas.",
-      "To show how productive struggle can prepare students for instruction.",
-      "To argue that students should avoid difficult tasks.",
-      "To prove that formulas are unnecessary.",
-    ],
-    answer: 1,
-    concept: "author purpose",
-  },
-  {
-    id: "l4",
-    skill: "listening",
-    type: "choice",
-    title: "Lecture: chemistry",
-    time: "1:45",
-    audioCue: "Professor explains why catalysts matter in reactions.",
-    transcript:
-      "A catalyst does not add energy to a reaction. It gives the reaction a different path, one that requires less energy to begin. That is why the catalyst can speed up the process without being used up.",
-    question: "What does the professor emphasize about catalysts?",
-    options: [
-      "They are consumed during every reaction.",
-      "They lower the energy needed for a reaction path.",
-      "They make reactions impossible to control.",
-      "They add heat to the final product.",
-    ],
-    answer: 1,
-    concept: "technical explanation",
-  },
-  {
-    id: "l5",
-    skill: "listening",
-    type: "choice",
-    title: "Conversation: academic advisor",
-    time: "1:35",
-    audioCue: "Student asks whether to drop a course.",
-    transcript:
-      "The advisor says the student is not failing but has missed two lab reports. She recommends visiting the teaching assistant first because the deadline extension may still be possible.",
-    question: "What does the advisor suggest the student do first?",
-    options: [
-      "Drop the course immediately.",
-      "Ask the teaching assistant about the missing lab reports.",
-      "Register for a different major.",
-      "Wait until the final exam.",
-    ],
-    answer: 1,
-    concept: "next step",
-  },
-  {
-    id: "l6",
-    skill: "listening",
-    type: "choice",
-    title: "Lecture: economics",
-    time: "1:55",
-    audioCue: "Professor contrasts price and non-price signals.",
-    transcript:
-      "Prices can signal scarcity, but they are not the only signal. Long waiting lists can show that demand is higher than supply even when the price is fixed by policy.",
-    question: "Why does the professor mention waiting lists?",
-    options: [
-      "To show another signal of scarcity.",
-      "To prove that prices never matter.",
-      "To describe a historical market crash.",
-      "To argue that demand is always low.",
-    ],
-    answer: 0,
-    concept: "example purpose",
-  },
-  {
-    id: "l7",
-    skill: "listening",
-    type: "choice",
-    title: "Lecture: laboratory methods",
-    time: "1:40",
-    audioCue: "Professor warns students about a common measurement error.",
-    transcript:
-      "If you rinse the container but do not dry it, a small amount of water remains. That water dilutes the sample, so your final concentration appears lower than it actually is.",
-    question: "What problem is the professor describing?",
-    options: [
-      "A sample may be diluted by remaining water.",
-      "A container may become too hot to touch.",
-      "A measurement will be too high because of evaporation.",
-      "A student may forget the name of the chemical.",
-    ],
-    answer: 0,
-    concept: "cause and effect",
-  },
-  {
-    id: "l8",
-    skill: "listening",
-    type: "choice",
-    title: "Conversation: campus policy",
-    time: "1:30",
-    audioCue: "Student asks about a new bike parking rule.",
-    transcript:
-      "The staff member says bikes will be moved only if they block emergency exits. The new rule is not meant to punish riders; it is meant to keep pathways clear.",
-    question: "What is the purpose of the new rule?",
-    options: [
-      "To reduce the number of students on campus.",
-      "To keep emergency pathways clear.",
-      "To require every student to buy a new bike.",
-      "To close the bike parking area.",
-    ],
-    answer: 1,
-    concept: "policy purpose",
-  },
-  {
-    id: "l9",
-    skill: "listening",
-    type: "choice",
-    title: "Lecture: archaeology",
-    time: "1:50",
-    audioCue: "Professor discusses why a site changed interpretation.",
-    transcript:
-      "At first, the site looked like a market because many tools were found there. But residue on the tools showed repeated food preparation, so researchers now think it may have been a communal kitchen.",
-    question: "Why did researchers change their interpretation?",
-    options: [
-      "They found evidence of repeated food preparation.",
-      "They discovered that the site was underwater.",
-      "They stopped studying tools.",
-      "They learned that markets did not exist.",
-    ],
-    answer: 0,
-    concept: "revision of hypothesis",
-  },
-  {
-    id: "s3",
-    skill: "speaking",
-    type: "open",
-    title: "Speaking: campus preference",
-    time: "45s",
-    prompt:
-      "Some schools require students to join one club each semester. Do you think this is a good policy?",
-    question: "Give your opinion and support it with reasons and an example.",
-    concept: "opinion support",
-    minWords: 45,
-  },
-  {
-    id: "s4",
-    skill: "speaking",
-    type: "open",
-    title: "Speaking: integrated campus announcement",
-    time: "60s",
-    prompt:
-      "Reading: The school will open a quiet lunch room. Listening: A student supports it because some students need a calm place before afternoon classes.",
-    question: "Summarize the announcement and explain the student's opinion.",
-    concept: "campus integration",
-    minWords: 55,
-  },
-  {
-    id: "s5",
-    skill: "speaking",
-    type: "open",
-    title: "Speaking: academic concept",
-    time: "60s",
-    prompt:
-      "Lecture concept: mutualism. Example: Bees get nectar from flowers, while flowers receive help with pollination.",
-    question: "Explain the concept using the example from the lecture.",
-    concept: "academic explanation",
-    minWords: 55,
-  },
-  {
-    id: "s6",
-    skill: "speaking",
-    type: "open",
-    title: "Speaking: learning tools",
-    time: "45s",
-    prompt:
-      "Do you prefer learning vocabulary with paper cards or a digital app?",
-    question: "State your preference and include one specific study situation.",
-    concept: "specific example",
-    minWords: 45,
-  },
-  {
-    id: "s7",
-    skill: "speaking",
-    type: "open",
-    title: "Speaking: integrated reading and lecture",
-    time: "60s",
-    prompt:
-      "Reading: Some animals use warning colors. Lecture: The professor gives an example of a bright frog that predators avoid.",
-    question: "Explain how the lecture example illustrates the reading concept.",
-    concept: "concept mapping",
-    minWords: 55,
-  },
-  {
-    id: "s8",
-    skill: "speaking",
-    type: "open",
-    title: "Speaking: classroom summary",
-    time: "60s",
-    prompt:
-      "A professor says peer review helps writers notice unclear assumptions. She describes a student who improved an essay after classmates asked questions.",
-    question: "Summarize the professor's point and the example.",
-    concept: "summary precision",
-    minWords: 55,
-  },
-  {
-    id: "s9",
-    skill: "speaking",
-    type: "open",
-    title: "Speaking: schedule decision",
-    time: "45s",
-    prompt:
-      "Would you rather take an important test in the morning or in the afternoon?",
-    question: "Give two reasons and connect them to your own study habits.",
-    concept: "personal reasoning",
-    minWords: 45,
-  },
-  {
-    id: "w4",
-    skill: "writing",
-    type: "choice",
-    title: "Writing: Build a Sentence",
-    time: "1:20",
-    prompt:
-      "Combine the ideas: the library bought new databases; students could access more journals; the change supported research projects.",
-    question: "Choose the clearest sentence.",
-    options: [
-      "By buying new databases, the library gave students access to more journals and supported research projects.",
-      "The library research projects bought students because journals were databases.",
-      "Students were access and projects because the library bought.",
-      "New databases supported bought journals with students.",
-    ],
-    answer: 0,
-    concept: "sentence control",
-  },
-  {
-    id: "w5",
-    skill: "writing",
-    type: "open",
-    title: "Writing: Email",
-    time: "6:00",
-    prompt:
-      "Your coach asks whether practice should begin at 7:00 or 8:00 next month. Write an email giving your preference.",
-    question: "Use a polite tone, explain your reason, and offer flexibility.",
-    concept: "email register",
-    minWords: 70,
-  },
-  {
-    id: "w6",
-    skill: "writing",
-    type: "open",
-    title: "Writing: Academic Discussion",
-    time: "8:00",
-    prompt:
-      "Professor: Should schools allow students to use AI tools for brainstorming but not for final writing?",
-    question: "Add to the discussion with a clear position and example.",
-    concept: "balanced argument",
-    minWords: 95,
-  },
-  {
-    id: "w7",
-    skill: "writing",
-    type: "choice",
-    title: "Writing: Sentence Precision",
-    time: "1:20",
-    prompt:
-      "Combine the ideas: the experiment was repeated three times; the results were similar; the researcher became more confident.",
-    question: "Choose the most precise sentence.",
-    options: [
-      "Because the experiment produced similar results three times, the researcher became more confident.",
-      "The researcher repeated confident because similar results were times.",
-      "Three times were confident and experiments similar.",
-      "The results repeated the researcher because similar confidence.",
-    ],
-    answer: 0,
-    concept: "cause connection",
-  },
-  {
-    id: "w8",
-    skill: "writing",
-    type: "open",
-    title: "Writing: Email",
-    time: "6:00",
-    prompt:
-      "A teacher offers extra credit for either attending a lecture or writing a reflection. Write an email choosing one option.",
-    question: "Explain your choice and ask one practical question.",
-    concept: "purposeful email",
-    minWords: 70,
-  },
-  {
-    id: "w9",
-    skill: "writing",
-    type: "open",
-    title: "Writing: Academic Discussion",
-    time: "8:00",
-    prompt:
-      "Professor: Some museums now offer free admission to students. What is one benefit or drawback of this policy?",
-    question: "Respond to the discussion with a clear claim and concrete support.",
-    concept: "claim evidence",
-    minWords: 95,
   },
 ];
 
-export const diagnosticSummary = {
-  estimatedMinutes: 45,
-  testSets: 3,
-  reliability:
-    "36 题可以做方向性诊断；要预测正式分数，仍需要完整模考与真实音频录音数据。",
-};
-
-export const practiceLibrary = {
+export const practiceCollections = {
   reading: {
-    title: "Reading Sprint",
-    task: "每天 2 篇短学术文章，限时标出主旨句、转折词、例证功能。",
-    drill: "3 分钟扫结构，8 分钟做题，4 分钟复盘错因。",
-    rubric: ["主旨", "推断", "句子插入", "摘要题"],
-  },
-  listening: {
-    title: "Lecture Map",
-    task: "用层级笔记记录 lecture: topic, problem, explanations, evidence。",
-    drill: "听一遍不暂停，复述 45 秒，再核对遗漏关系词。",
-    rubric: ["主旨", "态度", "组织", "细节证据"],
-  },
-  speaking: {
-    title: "45s Response Loop",
-    task: "录音前写 6 个关键词，录音后检查观点、理由、例子、收束。",
-    drill: "同题三遍：流畅版、清晰版、高分词汇版。",
-    rubric: ["delivery", "language use", "topic development"],
-  },
-  writing: {
-    title: "Sentence to Argument",
-    task: "先做句子精确度，再做 email 语气，最后做 discussion 论证。",
-    drill: "每篇只改一个目标：句法、衔接、例子、语气。",
-    rubric: ["grammar", "coherence", "development", "register"],
-  },
-};
-
-export const trainingModules = {
-  reading: {
-    bankCount: 12,
-    coverage: "学术文章、主旨、推断、句子功能、摘要题",
-    tasks: [
-      {
-        name: "Main Idea Ladder",
-        minutes: 16,
-        level: "core",
-        prompt: "读一段 220-260 词文章，写出 topic, controlling idea, author purpose。",
-      },
-      {
-        name: "Inference Trap Scan",
-        minutes: 14,
-        level: "core",
-        prompt: "做 8 道推断题，只标出证据句，不解释答案。",
-      },
-      {
-        name: "Sentence Function Drill",
-        minutes: 18,
-        level: "target",
-        prompt: "判断转折句、例证句、定义句、限制句在段落中的作用。",
-      },
-      {
-        name: "Vocabulary in Context",
-        minutes: 12,
-        level: "speed",
-        prompt: "不查词典，通过上下文替换 20 个学术词。",
-      },
-      {
-        name: "Paragraph Map",
-        minutes: 18,
-        level: "target",
-        prompt: "每段只写 6 个英文词，训练结构记忆。",
-      },
-      {
-        name: "Summary Choice",
-        minutes: 20,
-        level: "advanced",
-        prompt: "从 6 个选项中选 3 个主干信息，排除细节和反向表述。",
-      },
-      {
-        name: "Reference Chain",
-        minutes: 12,
-        level: "speed",
-        prompt: "标出 this, such, these, it 指代对象，防止句间断裂。",
-      },
-      {
-        name: "Timed Two-Passage Set",
-        minutes: 30,
-        level: "exam",
-        prompt: "两篇短文连续做，结束后只复盘错因标签。",
-      },
-      {
-        name: "Contrast Marker Set",
-        minutes: 15,
-        level: "target",
-        prompt: "圈出 however, although, rather than, instead 后的观点变化。",
-      },
-      {
-        name: "Evidence Locator",
-        minutes: 12,
-        level: "speed",
-        prompt: "先看题干，再在文章中定位唯一证据句。",
-      },
-      {
-        name: "Wrong Answer Autopsy",
-        minutes: 16,
-        level: "review",
-        prompt: "把错项归类为 too broad, opposite, unsupported, detail-only。",
-      },
-      {
-        name: "Academic Topic Rotation",
-        minutes: 24,
-        level: "advanced",
-        prompt: "生态、历史、心理、地质四类文章各做一题，训练陌生话题稳定性。",
-      },
+    label: "阅读",
+    english: "Reading",
+    description: "学术文章、日常阅读、词汇填空、主旨、推断、句子功能和摘要题。",
+    totalItems: 96,
+    setCount: 16,
+    minutes: 420,
+    sets: [
+      ["Green Space Passage", "主旨 + 细节功能", "2 篇文章，8 题", "基础"],
+      ["Ancient Trade Passage", "推断 + 摘要", "2 篇文章，8 题", "中等"],
+      ["Complete the Words A", "词汇填空", "24 个短句", "基础"],
+      ["Read in Daily Life", "邮件、公告、课程说明", "12 题", "基础"],
+      ["Sentence Function Set", "例证句、转折句、定义句", "10 题", "中等"],
+      ["Inference Trap Scan", "排除过度推断", "12 题", "中等"],
+      ["Vocabulary in Context", "上下文替换", "20 词", "基础"],
+      ["Reference Chain", "this, these, it 指代", "14 题", "基础"],
+      ["Two-Passage Timer", "连续阅读耐力", "30 分钟", "考试"],
+      ["Summary Choice", "三选主干信息", "8 题", "高阶"],
+      ["Contrast Marker Drill", "however, instead, although", "10 题", "中等"],
+      ["Evidence Locator", "先题干后定位", "12 题", "速度"],
+      ["Paragraph Map", "每段 6 词结构笔记", "6 篇", "中等"],
+      ["Author Purpose Set", "作者为什么提到某细节", "12 题", "中等"],
+      ["Science Topic Rotation", "生态、地质、心理、化学", "16 题", "高阶"],
+      ["Wrong Answer Autopsy", "错项类型分类", "20 分钟", "复盘"],
     ],
   },
   listening: {
-    bankCount: 12,
-    coverage: "lecture 结构、conversation 目的、态度、细节证据",
-    tasks: [
-      {
-        name: "Lecture Skeleton",
-        minutes: 18,
-        level: "core",
-        prompt: "听 2 分钟 lecture，只记 topic, problem, examples, conclusion。",
-      },
-      {
-        name: "Speaker Attitude",
-        minutes: 12,
-        level: "target",
-        prompt: "从转折、停顿和评价词判断 professor 态度。",
-      },
-      {
-        name: "Campus Purpose Drill",
-        minutes: 14,
-        level: "core",
-        prompt: "听 conversation，写出学生来访目的和 staff 给出的下一步。",
-      },
-      {
-        name: "Detail with Function",
-        minutes: 16,
-        level: "target",
-        prompt: "每个细节旁边写用途：example, contrast, evidence, warning。",
-      },
-      {
-        name: "No-Pause Recall",
-        minutes: 15,
-        level: "speed",
-        prompt: "听完立刻 45 秒复述，不暂停不倒回。",
-      },
-      {
-        name: "Two-Column Notes",
-        minutes: 18,
-        level: "core",
-        prompt: "左栏写概念，右栏写例子或证据。",
-      },
-      {
-        name: "Repair Missed Signal",
-        minutes: 12,
-        level: "review",
-        prompt: "复听错题前后 15 秒，找漏掉的提示词。",
-      },
-      {
-        name: "Mini Lecture Set",
-        minutes: 29,
-        level: "exam",
-        prompt: "连续完成 3 段短 lecture，模拟注意力衰减。",
-      },
-      {
-        name: "Definition to Example",
-        minutes: 14,
-        level: "target",
-        prompt: "听到定义后预测后面会出现的例子类型。",
-      },
-      {
-        name: "Conversation Decision",
-        minutes: 12,
-        level: "speed",
-        prompt: "判断最后建议是否解决了学生的原始问题。",
-      },
-      {
-        name: "Distractor Audit",
-        minutes: 16,
-        level: "review",
-        prompt: "错项分类为 not mentioned, true but irrelevant, distorted detail。",
-      },
-      {
-        name: "Academic Accent Mix",
-        minutes: 22,
-        level: "advanced",
-        prompt: "同一话题听两种语速，训练关键词稳定抓取。",
-      },
-    ],
-  },
-  speaking: {
-    bankCount: 12,
-    coverage: "独立题、校园综合题、学术综合题、录音复盘",
-    tasks: [
-      {
-        name: "45s Opinion Loop",
-        minutes: 15,
-        level: "core",
-        prompt: "同一题录 3 遍：完整、清晰、自然。",
-      },
-      {
-        name: "Reason Example Pair",
-        minutes: 12,
-        level: "target",
-        prompt: "每个理由必须接一个具体学生场景。",
-      },
-      {
-        name: "Integrated Campus Frame",
-        minutes: 16,
-        level: "core",
-        prompt: "模板：The school plans... The student agrees/disagrees because...",
-      },
-      {
-        name: "Academic Concept Explain",
-        minutes: 18,
-        level: "target",
-        prompt: "先定义概念，再解释 lecture example 如何对应概念。",
-      },
-      {
-        name: "Pronunciation Clarity",
-        minutes: 10,
-        level: "speed",
-        prompt: "只练重音、停顿、句尾收束，不改内容。",
-      },
-      {
-        name: "Filler Word Cut",
-        minutes: 12,
-        level: "review",
-        prompt: "听录音，标出 um, like, you know，并重录。",
-      },
-      {
-        name: "Transition Upgrade",
-        minutes: 14,
-        level: "target",
-        prompt: "把 and then 改成 first, as a result, this matters because。",
-      },
-      {
-        name: "Two-Question Set",
-        minutes: 18,
-        level: "exam",
-        prompt: "连续答独立题和综合题，训练切换速度。",
-      },
-      {
-        name: "Keyword Prep",
-        minutes: 10,
-        level: "speed",
-        prompt: "准备时间只写 6 个关键词，不写完整句。",
-      },
-      {
-        name: "Ending Control",
-        minutes: 12,
-        level: "target",
-        prompt: "每次回答最后 5 秒必须回扣主观点。",
-      },
-      {
-        name: "Rubric Self-Score",
-        minutes: 14,
-        level: "review",
-        prompt: "按 delivery, language use, development 各给 1-6 分。",
-      },
-      {
-        name: "High-Pressure Retake",
-        minutes: 20,
-        level: "advanced",
-        prompt: "错题不看稿重答，目标减少停顿并保留信息完整度。",
-      },
+    label: "听力",
+    english: "Listening",
+    description: "校园对话、公告、学术讲座、主旨、态度、组织结构和细节证据。",
+    totalItems: 88,
+    setCount: 14,
+    minutes: 390,
+    sets: [
+      ["Library Conversation", "来访目的 + 下一步", "2 段对话，6 题", "基础"],
+      ["Forest Edge Lecture", "讲座结构", "2 段讲座，8 题", "中等"],
+      ["Campus Announcement", "政策目的", "3 段公告，9 题", "基础"],
+      ["Speaker Attitude", "语气和评价词", "12 题", "中等"],
+      ["Lecture Skeleton", "topic, problem, evidence", "6 段", "基础"],
+      ["Two-Column Notes", "概念 + 例子", "4 段", "基础"],
+      ["Detail with Function", "细节为什么出现", "10 题", "中等"],
+      ["Repair Missed Signal", "复听错题前后 15 秒", "20 分钟", "复盘"],
+      ["No-Pause Recall", "听完 45 秒复述", "5 段", "速度"],
+      ["Definition to Example", "听定义预测例子", "8 题", "中等"],
+      ["Conversation Decision", "建议是否解决问题", "10 题", "基础"],
+      ["Mini Lecture Set", "连续三段 lecture", "29 分钟", "考试"],
+      ["Distractor Audit", "true but irrelevant", "12 题", "复盘"],
+      ["Academic Accent Mix", "不同语速同话题", "6 段", "高阶"],
     ],
   },
   writing: {
-    bankCount: 12,
-    coverage: "句子构建、email、academic discussion、语言准确度",
-    tasks: [
-      {
-        name: "Sentence Builder",
-        minutes: 14,
-        level: "core",
-        prompt: "合并 10 组短句，检查从句、因果、让步。",
-      },
-      {
-        name: "Email Tone Drill",
-        minutes: 18,
-        level: "core",
-        prompt: "写 2 封 email，一封请求，一封选择方案。",
-      },
-      {
-        name: "Discussion Claim",
-        minutes: 16,
-        level: "target",
-        prompt: "每段第一句必须是可争论观点，不写空泛开头。",
-      },
-      {
-        name: "Concrete Example Bank",
-        minutes: 12,
-        level: "speed",
-        prompt: "为学校、科技、城市、学习四类话题各写 2 个例子。",
-      },
-      {
-        name: "Grammar Accuracy Pass",
-        minutes: 15,
-        level: "review",
-        prompt: "只改主谓一致、时态、冠词、介词。",
-      },
-      {
-        name: "Cohesion Upgrade",
-        minutes: 14,
-        level: "target",
-        prompt: "用 because, however, for example, as a result 重写连接。",
-      },
-      {
-        name: "Email Constraint Check",
-        minutes: 10,
-        level: "speed",
-        prompt: "检查 greeting, purpose, reason, closing 四件事是否齐全。",
-      },
-      {
-        name: "23-Min Writing Set",
-        minutes: 23,
-        level: "exam",
-        prompt: "1 题 sentence, 1 封 email, 1 段 discussion 连续完成。",
-      },
-      {
-        name: "Register Repair",
-        minutes: 12,
-        level: "target",
-        prompt: "把 too casual 的句子改成自然但礼貌的学术语气。",
-      },
-      {
-        name: "Argument Expansion",
-        minutes: 18,
-        level: "advanced",
-        prompt: "把 60 词观点扩成 110 词，增加例子和让步。",
-      },
-      {
-        name: "Model Answer Compare",
-        minutes: 16,
-        level: "review",
-        prompt: "对比范文，只抄结构，不抄句子。",
-      },
-      {
-        name: "Error Pattern Log",
-        minutes: 10,
-        level: "review",
-        prompt: "每篇只记录一个最常犯错误和下一次修正动作。",
-      },
+    label: "写作",
+    english: "Writing",
+    description: "Build a Sentence、Email、Academic Discussion、语气、句法准确和例子展开。",
+    totalItems: 54,
+    setCount: 12,
+    minutes: 310,
+    sets: [
+      ["Sentence Builder A", "因果、让步、定语从句", "12 题", "基础"],
+      ["Sentence Builder B", "更长句控制", "12 题", "中等"],
+      ["Email Choice", "二选一说明理由", "4 封", "基础"],
+      ["Email Request", "请求、解释、感谢", "4 封", "基础"],
+      ["Email Register Repair", "太随意改自然礼貌", "10 句", "中等"],
+      ["Discussion Claim", "第一句必须有观点", "5 题", "基础"],
+      ["Concrete Example Bank", "学校、科技、城市、学习", "16 例", "速度"],
+      ["Argument Expansion", "60 词扩成 120 词", "4 段", "高阶"],
+      ["Grammar Accuracy Pass", "时态、冠词、主谓一致", "8 篇", "复盘"],
+      ["Cohesion Upgrade", "because, however, as a result", "12 句", "中等"],
+      ["23-Min Writing Set", "三题连续完成", "23 分钟", "考试"],
+      ["Model Answer Compare", "只学结构，不背句子", "6 篇", "复盘"],
     ],
   },
 };
 
-export const contentStats = [
-  { label: "诊断题", value: 36, detail: "每科 9 题" },
-  { label: "专项任务", value: 48, detail: "四科训练池" },
-  { label: "训练分钟", value: 780, detail: "约 3-4 周" },
-  { label: "错因标签", value: 16, detail: "复盘分类" },
-];
-
-export const reviewSignals = [
-  "main idea",
-  "inference",
-  "speaker purpose",
-  "lecture organization",
-  "delivery",
-  "topic development",
-  "sentence control",
-  "argument support",
-];
-
-export const weeklyBlocks = [
-  { day: "Mon", focus: "Reading + Vocabulary", minutes: 45 },
-  { day: "Tue", focus: "Listening lecture notes", minutes: 45 },
-  { day: "Wed", focus: "Speaking recordings", minutes: 35 },
-  { day: "Thu", focus: "Writing sentence/email", minutes: 45 },
-  { day: "Fri", focus: "Mixed mini-test", minutes: 55 },
-  { day: "Sat", focus: "Full diagnostic review", minutes: 70 },
-  { day: "Sun", focus: "Light reading + reset", minutes: 25 },
-];
+export const sourcePolicy = {
+  title: "真题资源策略",
+  note:
+    "站内题目为原创 TOEFL-style 仿真题；正式真题和 TPO 属于 ETS 授权内容，建议通过官方 TestReady、Official Guide 或 Official Tests 获取。",
+};

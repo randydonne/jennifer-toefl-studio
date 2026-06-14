@@ -1,13 +1,19 @@
 # Jennifer TOEFL Studio
 
-Desktop-first TOEFL iBT preparation dashboard for Jennifer.
+Desktop-first TOEFL iBT preparation site for Jennifer.
 
 ## What It Includes
 
-- 36-question TOEFL-style diagnostic, 9 questions per skill
-- Reading, Listening, Speaking, and Writing skill profile
-- 48 targeted practice modules
-- Parent coaching notes and weekly training plan
+- Large-type desktop interface for eye-friendly study
+- Computer-based mock exam flow with timer, section tabs, question navigator, mark-for-review, answer capture, and result screen
+- Reading, Listening, and Writing practice banks with 238 original TOEFL-style training items
+- Listening mock section with simulated audio player and hidden transcript behavior
+- Writing mock section with response box and live word count
+- Official ETS resource links for Test Content, TOEFL Prep, TOEFL TestReady/TPO, and Official Guide
+
+## Content Policy
+
+The built-in questions are original TOEFL-style practice. Official past questions and TPO materials are owned or licensed by ETS, so the site links to official sources instead of copying unauthorized real questions into the app.
 
 ## Local Development
 

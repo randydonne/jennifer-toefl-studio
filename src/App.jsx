@@ -1,757 +1,792 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  ArrowLeft,
   ArrowRight,
-  BarChart3,
   BookOpen,
-  CalendarDays,
-  Check,
-  ChevronRight,
-  ClipboardCheck,
+  CheckCircle2,
   Clock3,
-  Edit3,
   ExternalLink,
-  FileText,
+  Flag,
   Headphones,
   Library,
   ListChecks,
-  Mic2,
+  Pause,
+  PenLine,
   Play,
-  RefreshCw,
-  Sparkles,
-  Target,
+  RotateCcw,
+  Timer,
+  Volume2,
 } from "lucide-react";
 import {
-  contentStats,
-  diagnosticSummary,
-  diagnosticItems,
-  examBlueprint,
-  initialSkillProfile,
-  practiceLibrary,
-  reviewSignals,
-  trainingModules,
-  weeklyBlocks,
+  mockSections,
+  officialResources,
+  practiceCollections,
+  sourcePolicy,
 } from "./data/toeflData.js";
 
-const iconMap = {
+const navItems = [
+  { id: "mock", label: "模拟机考", Icon: Timer },
+  { id: "reading", label: "阅读", Icon: BookOpen },
+  { id: "listening", label: "听力", Icon: Headphones },
+  { id: "writing", label: "写作", Icon: PenLine },
+];
+
+const sectionIcons = {
   reading: BookOpen,
   listening: Headphones,
-  speaking: Mic2,
-  writing: Edit3,
+  writing: PenLine,
 };
 
-const skillColors = {
-  reading: "var(--blue)",
-  listening: "var(--teal)",
-  speaking: "var(--violet)",
-  writing: "var(--amber)",
-};
+function flattenQuestions(section) {
+  return section.blocks.flatMap((block) =>
+    block.questions.map((question) => ({
+      ...question,
+      block,
+      sectionId: section.id,
+    })),
+  );
+}
 
 function wordCount(value = "") {
   return value.trim().split(/\s+/).filter(Boolean).length;
 }
 
-function scoreOpenAnswer(item, value = "") {
+function formatTime(seconds) {
+  const safeSeconds = Math.max(0, seconds);
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainingSeconds = safeSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+}
+
+function scoreTextAnswer(question, value = "") {
   const words = wordCount(value);
   if (!words) return 0;
 
-  const text = value.toLowerCase();
-  const connectors = [
-    "because",
-    "however",
-    "therefore",
-    "for example",
-    "first",
-    "second",
-    "also",
-    "although",
-    "in addition",
-  ].filter((term) => text.includes(term)).length;
-  const hasSpecifics = /\b(school|teacher|project|library|exam|city|students|research|data|example)\b/.test(
-    text,
+  const lower = value.toLowerCase();
+  const connectors = ["because", "however", "for example", "therefore", "although", "first", "also"]
+    .filter((term) => lower.includes(term)).length;
+  const hasSpecificExample = /\b(school|teacher|student|city|park|project|exam|library|class)\b/.test(
+    lower,
   );
-  const lengthScore = Math.min(words / item.minWords, 1);
+  const lengthScore = Math.min(words / question.minWords, 1);
   const structureScore = Math.min(connectors / 3, 1);
-  const specificityScore = hasSpecifics ? 1 : 0.45;
+  const exampleScore = hasSpecificExample ? 1 : 0.55;
 
-  return Math.min(lengthScore * 0.52 + structureScore * 0.28 + specificityScore * 0.2, 1);
+  return lengthScore * 0.55 + structureScore * 0.25 + exampleScore * 0.2;
 }
 
-function scoreChoice(item, response) {
-  return Number(response === item.answer);
-}
+function scoreSection(section, answers) {
+  const questions = flattenQuestions(section);
+  const earned = questions.reduce((sum, question) => {
+    const answer = answers[question.id];
+    if (question.type === "choice") return sum + Number(answer === question.answer);
+    return sum + scoreTextAnswer(question, answer);
+  }, 0);
 
-function calculateProfile(responses) {
-  const profile = {};
+  const answered = questions.filter((question) => {
+    const answer = answers[question.id];
+    return question.type === "choice" ? answer !== undefined : Boolean(answer?.trim());
+  }).length;
+  const ratio = questions.length ? earned / questions.length : 0;
 
-  examBlueprint.forEach((skill) => {
-    const skillItems = diagnosticItems.filter((item) => item.skill === skill.id);
-    const earned = skillItems.reduce((sum, item) => {
-      const response = responses[item.id];
-      if (item.type === "choice") return sum + scoreChoice(item, response);
-      return sum + scoreOpenAnswer(item, response);
-    }, 0);
-    const answered = skillItems.filter((item) => {
-      const response = responses[item.id];
-      return item.type === "choice" ? response !== undefined : Boolean(response?.trim());
-    }).length;
-    const ratio = skillItems.length ? earned / skillItems.length : 0;
-    const blended = answered ? 1 + ratio * 5 : initialSkillProfile[skill.id];
-
-    profile[skill.id] = {
-      score: Number(blended.toFixed(1)),
-      answered,
-      total: skillItems.length,
-      ratio,
-    };
-  });
-
-  return profile;
-}
-
-function getBand(score) {
-  if (score >= 5.2) return "高分冲刺";
-  if (score >= 4.2) return "稳定提升";
-  if (score >= 3.2) return "重点补强";
-  return "基础重建";
-}
-
-function getWeakestSkills(profile) {
-  return [...examBlueprint]
-    .sort((a, b) => profile[a.id].score - profile[b.id].score)
-    .slice(0, 2);
+  return {
+    answered,
+    total: questions.length,
+    ratio,
+    band: Number((1 + ratio * 5).toFixed(1)),
+  };
 }
 
 function App() {
-  const [started, setStarted] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [responses, setResponses] = useState({});
-  const [activeSkill, setActiveSkill] = useState("reading");
-  const [showTranscript, setShowTranscript] = useState(false);
+  const [activeTab, setActiveTab] = useState("mock");
+  const [examMode, setExamMode] = useState("home");
+  const [sectionIndex, setSectionIndex] = useState(0);
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [marked, setMarked] = useState({});
+  const [timeRemaining, setTimeRemaining] = useState(mockSections[0].minutes * 60);
+  const [audioPlaying, setAudioPlaying] = useState(false);
+  const [selectedSets, setSelectedSets] = useState({
+    reading: practiceCollections.reading.sets[0][0],
+    listening: practiceCollections.listening.sets[0][0],
+    writing: practiceCollections.writing.sets[0][0],
+  });
 
-  const profile = useMemo(() => calculateProfile(responses), [responses]);
-  const answeredCount = Object.entries(responses).filter(([id, value]) => {
-    const item = diagnosticItems.find((entry) => entry.id === id);
-    return item?.type === "choice" ? value !== undefined : Boolean(value?.trim());
-  }).length;
-  const progress = Math.round((answeredCount / diagnosticItems.length) * 100);
-  const activeItem = diagnosticItems[activeIndex];
-  const selectedPractice = practiceLibrary[activeSkill];
-  const selectedTrainingModule = trainingModules[activeSkill];
-  const weakest = getWeakestSkills(profile);
-  const projectedTotal = Math.round(
-    examBlueprint.reduce((sum, skill) => sum + profile[skill.id].score, 0) * 5,
+  const totalMockQuestions = useMemo(
+    () => mockSections.reduce((sum, section) => sum + flattenQuestions(section).length, 0),
+    [],
   );
 
-  function updateResponse(itemId, value) {
-    setResponses((current) => ({ ...current, [itemId]: value }));
-  }
-
-  function goNext() {
-    setShowTranscript(false);
-    if (activeIndex < diagnosticItems.length - 1) {
-      setActiveIndex((index) => index + 1);
-      setActiveSkill(diagnosticItems[activeIndex + 1].skill);
-      return;
+  useEffect(() => {
+    if (examMode === "active") {
+      setTimeRemaining(mockSections[sectionIndex].minutes * 60);
+      setAudioPlaying(false);
     }
-    setStarted(false);
+  }, [examMode, sectionIndex]);
+
+  useEffect(() => {
+    if (examMode !== "active") return undefined;
+
+    const timerId = window.setInterval(() => {
+      setTimeRemaining((current) => Math.max(0, current - 1));
+    }, 1000);
+
+    return () => window.clearInterval(timerId);
+  }, [examMode, sectionIndex]);
+
+  function startExam() {
+    setExamMode("active");
+    setActiveTab("mock");
+    setSectionIndex(0);
+    setQuestionIndex(0);
+    setAnswers({});
+    setMarked({});
+    setAudioPlaying(false);
   }
 
-  function resetDiagnostic() {
-    setResponses({});
-    setActiveIndex(0);
-    setActiveSkill("reading");
-    setStarted(true);
-    setShowTranscript(false);
+  function exitExam() {
+    setExamMode("home");
+    setAudioPlaying(false);
+  }
+
+  function finishExam() {
+    setExamMode("results");
+    setAudioPlaying(false);
+  }
+
+  if (examMode === "active") {
+    return (
+      <MockExam
+        sectionIndex={sectionIndex}
+        questionIndex={questionIndex}
+        answers={answers}
+        marked={marked}
+        timeRemaining={timeRemaining}
+        audioPlaying={audioPlaying}
+        onSetAudioPlaying={setAudioPlaying}
+        onAnswer={(id, value) => setAnswers((current) => ({ ...current, [id]: value }))}
+        onToggleMark={(id) => setMarked((current) => ({ ...current, [id]: !current[id] }))}
+        onSetQuestion={setQuestionIndex}
+        onPrevious={() => {
+          setQuestionIndex((index) => Math.max(0, index - 1));
+          setAudioPlaying(false);
+        }}
+        onNext={() => {
+          const questions = flattenQuestions(mockSections[sectionIndex]);
+          if (questionIndex < questions.length - 1) {
+            setQuestionIndex((index) => index + 1);
+            setAudioPlaying(false);
+            return;
+          }
+
+          if (sectionIndex < mockSections.length - 1) {
+            setSectionIndex((index) => index + 1);
+            setQuestionIndex(0);
+            setAudioPlaying(false);
+            return;
+          }
+
+          finishExam();
+        }}
+        onSectionChange={(nextSectionIndex) => {
+          setSectionIndex(nextSectionIndex);
+          setQuestionIndex(0);
+          setAudioPlaying(false);
+        }}
+        onFinish={finishExam}
+        onExit={exitExam}
+      />
+    );
+  }
+
+  if (examMode === "results") {
+    return (
+      <ResultsScreen
+        answers={answers}
+        onRestart={startExam}
+        onBackHome={() => {
+          setExamMode("home");
+          setActiveTab("mock");
+        }}
+      />
+    );
   }
 
   return (
     <div className="app-shell">
-      <aside className="sidebar" aria-label="TOEFL skill navigation">
-        <div className="brand">
-          <div className="brand-mark">J</div>
-          <div>
-            <strong>Jennifer</strong>
-            <span>TOEFL Studio</span>
-          </div>
-        </div>
+      <AppHeader activeTab={activeTab} onTabChange={setActiveTab} />
 
-        <button
-          className="nav-primary"
-          type="button"
-          onClick={() => {
-            setStarted(true);
-            setActiveSkill(activeItem.skill);
-          }}
-        >
-          <Target size={18} />
-          今日诊断
-        </button>
-
-        <nav className="skill-nav">
-          <span className="nav-label">四项技能</span>
-          {examBlueprint.map((skill) => {
-            const Icon = iconMap[skill.id];
-            const active = activeSkill === skill.id;
-            return (
-              <button
-                key={skill.id}
-                className={`skill-nav-item ${active ? "active" : ""}`}
-                type="button"
-                onClick={() => setActiveSkill(skill.id)}
-              >
-                <Icon size={19} style={{ color: skillColors[skill.id] }} />
-                <span>{skill.label}</span>
-                <small>{profile[skill.id].score.toFixed(1)}</small>
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="sidebar-links">
-          <button type="button">
-            <CalendarDays size={18} />
-            学习计划
-          </button>
-          <button type="button">
-            <FileText size={18} />
-            错题本
-          </button>
-          <button type="button">
-            <BarChart3 size={18} />
-            模考记录
-          </button>
-        </div>
-      </aside>
-
-      <main className="main">
-        <header className="topbar">
-          <div>
-            <h1>欢迎回来，Jennifer</h1>
-            <p>先做短诊断，再把每天练习压到最有效的弱项上。</p>
-          </div>
-          <div className="topbar-actions">
-            <div className="mode-chip">Grade 8 mode</div>
-            <a
-              className="source-link"
-              href="https://www.ets.org/toefl/test-takers/ibt/about/content.html"
-              target="_blank"
-              rel="noreferrer"
-            >
-              ETS format
-              <ExternalLink size={15} />
-            </a>
-          </div>
-        </header>
-
-        <section className="dashboard-grid" aria-label="TOEFL preparation dashboard">
-          <div className="primary-column">
-            <div className="top-grid">
-              <DiagnosticPanel
-                activeItem={activeItem}
-                activeIndex={activeIndex}
-                started={started}
-                progress={progress}
-                responses={responses}
-                showTranscript={showTranscript}
-                onShowTranscript={() => setShowTranscript((value) => !value)}
-                onStart={() => setStarted(true)}
-                onReset={resetDiagnostic}
-                onNext={goNext}
-                onUpdate={updateResponse}
-              />
-
-              <ProfilePanel profile={profile} projectedTotal={projectedTotal} />
-            </div>
-
-            <TrainingPlan profile={profile} weakest={weakest} />
-
-            <ContentScalePanel />
-
-            <PracticeBankPanel
-              activeSkill={activeSkill}
-              selectedTrainingModule={selectedTrainingModule}
-              onSelectSkill={setActiveSkill}
+      <main className="workspace">
+        {activeTab === "mock" ? (
+          <>
+            <MockLanding totalMockQuestions={totalMockQuestions} onStart={startExam} />
+            <PracticeRows
+              selectedSets={selectedSets}
+              onSelectSkill={setActiveTab}
+              onSelectSet={(skill, setName) =>
+                setSelectedSets((current) => ({ ...current, [skill]: setName }))
+              }
             />
-
-            <TaskPreview
-              activeSkill={activeSkill}
-              selectedPractice={selectedPractice}
-              onSelectSkill={setActiveSkill}
-            />
-          </div>
-
-          <CoachPanel profile={profile} weakest={weakest} progress={progress} />
-        </section>
+            <OfficialResources />
+          </>
+        ) : (
+          <PracticeArea
+            skill={activeTab}
+            selectedSetName={selectedSets[activeTab]}
+            onSelectSet={(setName) =>
+              setSelectedSets((current) => ({ ...current, [activeTab]: setName }))
+            }
+            onStartMock={startExam}
+          />
+        )}
       </main>
     </div>
   );
 }
 
-function ContentScalePanel() {
+function AppHeader({ activeTab, onTabChange }) {
   return (
-    <section className="panel content-scale-panel">
-      <div className="panel-head compact">
-        <div>
-          <h2>v2 内容容量</h2>
-          <p>从短测原型升级成可持续训练池，数量和覆盖面都可检查。</p>
-        </div>
-        <div className="scale-icon" aria-hidden="true">
-          <Library size={20} />
-        </div>
-      </div>
+    <header className="app-header">
+      <button className="brand" type="button" onClick={() => onTabChange("mock")}>
+        <span className="brand-mark">
+          <BookOpen size={25} />
+        </span>
+        <span>Jennifer TOEFL Studio</span>
+      </button>
 
-      <div className="content-stat-grid">
-        {contentStats.map((stat) => (
-          <div key={stat.label}>
-            <strong>{stat.value}</strong>
-            <span>{stat.label}</span>
-            <small>{stat.detail}</small>
-          </div>
+      <nav className="top-nav" aria-label="Main TOEFL sections">
+        {navItems.map(({ id, label, Icon }) => (
+          <button
+            key={id}
+            className={activeTab === id ? "active" : ""}
+            type="button"
+            onClick={() => onTabChange(id)}
+          >
+            <Icon size={23} />
+            {label}
+          </button>
         ))}
+      </nav>
+
+      <div className="header-status">
+        <span>电脑版</span>
+        <span>大字护眼</span>
+      </div>
+    </header>
+  );
+}
+
+function MockLanding({ totalMockQuestions, onStart }) {
+  return (
+    <section className="mock-hero">
+      <div className="mock-hero-summary">
+        <div className="hero-icon">
+          <Timer size={32} />
+        </div>
+        <div>
+          <h1>TOEFL 机考模拟</h1>
+          <p>按电脑考试界面练习阅读、听力、写作：计时、题号、标记复查、分区提交都在同一个流程里。</p>
+        </div>
       </div>
 
-      <div className="review-signal-strip" aria-label="Review signal tags">
-        <ListChecks size={17} />
-        {reviewSignals.map((signal) => (
-          <span key={signal}>{signal}</span>
+      <div className="hero-metrics" aria-label="Mock test summary">
+        <div>
+          <span>预计用时</span>
+          <strong>82:00</strong>
+        </div>
+        <div>
+          <span>当前进度</span>
+          <strong>0 / 3 Sections</strong>
+        </div>
+        <div>
+          <span>站内题量</span>
+          <strong>{totalMockQuestions} 题</strong>
+        </div>
+        <button className="primary-button hero-start" type="button" onClick={onStart}>
+          <Play size={24} />
+          开始模拟考试
+        </button>
+      </div>
+
+      <div className="exam-preview" aria-label="Computer-based test preview">
+        <div className="preview-title">
+          <strong>机考界面预览</strong>
+          <span>真实机考练习界面</span>
+        </div>
+        <div className="preview-panes">
+          <div className="preview-passage">
+            <div className="pane-line">
+              <span>Passage 1 of 2</span>
+              <button type="button">Hide</button>
+            </div>
+            <h2>The Impact of Urban Green Spaces on Well-Being</h2>
+            <p>
+              Cities around the world are growing rapidly. As more people live in urban areas,
+              the way cities are designed has a major influence on residents' quality of life.
+            </p>
+            <p>
+              Research shows that green spaces can improve both physical and mental health.
+              People who live near parks are more likely to exercise and report lower stress.
+            </p>
+          </div>
+          <div className="preview-question">
+            <div className="pane-line">
+              <span>Question 3 of 8</span>
+              <span>Mark for Review</span>
+            </div>
+            <h2>Which statement best expresses the main idea of the passage?</h2>
+            {["A", "B", "C", "D"].map((letter, index) => (
+              <div key={letter} className={index === 0 ? "preview-option selected" : "preview-option"}>
+                <span>{letter}</span>
+                <p>{index === 0 ? "Design and access both affect the value of green spaces." : "A tempting but incomplete answer choice."}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PracticeRows({ selectedSets, onSelectSkill, onSelectSet }) {
+  return (
+    <section className="practice-block">
+      <div className="section-heading">
+        <div>
+          <h2>专项练习题库</h2>
+          <p>读、听、写都已经放进来。题目是原创仿真题，真题入口放在下方官方资源区。</p>
+        </div>
+        <div className="bank-total">
+          <Library size={22} />
+          <strong>
+            {Object.values(practiceCollections).reduce((sum, skill) => sum + skill.totalItems, 0)}
+          </strong>
+          <span>站内训练项</span>
+        </div>
+      </div>
+
+      <div className="practice-rows">
+        {Object.entries(practiceCollections).map(([skill, collection]) => {
+          const Icon = sectionIcons[skill];
+          const selectedSetName = selectedSets[skill];
+          const selectedSet = collection.sets.find((set) => set[0] === selectedSetName) || collection.sets[0];
+
+          return (
+            <article className="practice-row" key={skill}>
+              <button className={`skill-icon ${skill}`} type="button" onClick={() => onSelectSkill(skill)}>
+                <Icon size={33} />
+              </button>
+              <div className="practice-title">
+                <h3>{collection.label}</h3>
+                <p>{collection.description}</p>
+              </div>
+              <div className="practice-number">
+                <span>题目数量</span>
+                <strong>{collection.totalItems}</strong>
+              </div>
+              <div className="practice-number">
+                <span>练习套数</span>
+                <strong>{collection.setCount}</strong>
+              </div>
+              <div className="set-picker">
+                <span>当前练习</span>
+                <select value={selectedSetName} onChange={(event) => onSelectSet(skill, event.target.value)}>
+                  {collection.sets.map((set) => (
+                    <option key={set[0]} value={set[0]}>
+                      {set[0]}
+                    </option>
+                  ))}
+                </select>
+                <small>
+                  {selectedSet[1]} · {selectedSet[2]}
+                </small>
+              </div>
+              <button className="outline-button" type="button" onClick={() => onSelectSkill(skill)}>
+                开始练习
+                <ArrowRight size={21} />
+              </button>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function OfficialResources() {
+  return (
+    <section className="resource-block">
+      <div className="section-heading">
+        <div>
+          <h2>{sourcePolicy.title}</h2>
+          <p>{sourcePolicy.note}</p>
+        </div>
+      </div>
+
+      <div className="resource-grid">
+        {officialResources.map((resource) => (
+          <a key={resource.title} className="resource-card" href={resource.url} target="_blank" rel="noreferrer">
+            <span>{resource.label}</span>
+            <h3>{resource.title}</h3>
+            <p>{resource.description}</p>
+            <strong>
+              打开官方资源
+              <ExternalLink size={18} />
+            </strong>
+          </a>
         ))}
       </div>
     </section>
   );
 }
 
-function DiagnosticPanel({
-  activeItem,
-  activeIndex,
-  started,
-  progress,
-  responses,
-  showTranscript,
-  onShowTranscript,
-  onStart,
-  onReset,
-  onNext,
-  onUpdate,
-}) {
-  const activeResponse = responses[activeItem.id];
-  const isAnswered =
-    activeItem.type === "choice"
-      ? activeResponse !== undefined
-      : Boolean(activeResponse?.trim());
+function PracticeArea({ skill, selectedSetName, onSelectSet, onStartMock }) {
+  const collection = practiceCollections[skill];
+  const Icon = sectionIcons[skill];
+  const selectedSet = collection.sets.find((set) => set[0] === selectedSetName) || collection.sets[0];
 
   return (
-    <section className="panel diagnostic-panel">
-      <div className="panel-head">
-        <div>
-          <h2>TOEFL iBT 水平诊断</h2>
-          <p>{diagnosticItems.length} 题短测，每科 9 题，覆盖四科关键高分能力。</p>
+    <section className="skill-page">
+      <div className="skill-hero">
+        <div className={`skill-hero-icon ${skill}`}>
+          <Icon size={39} />
         </div>
-        <div className="progress-ring" aria-label={`诊断进度 ${progress}%`}>
-          <svg viewBox="0 0 42 42" role="img">
-            <circle cx="21" cy="21" r="17" />
-            <circle
-              className="progress"
-              cx="21"
-              cy="21"
-              r="17"
-              strokeDasharray={`${progress} 100`}
-            />
-          </svg>
-          <span>{progress}%</span>
+        <div>
+          <h1>{collection.label}专项题库</h1>
+          <p>{collection.description}</p>
+        </div>
+        <button className="primary-button" type="button" onClick={onStartMock}>
+          <Timer size={23} />
+          进入模拟考
+        </button>
+      </div>
+
+      <div className="skill-stats">
+        <div>
+          <span>站内训练项</span>
+          <strong>{collection.totalItems}</strong>
+        </div>
+        <div>
+          <span>练习套数</span>
+          <strong>{collection.setCount}</strong>
+        </div>
+        <div>
+          <span>预计训练</span>
+          <strong>{collection.minutes} min</strong>
         </div>
       </div>
 
-      {!started ? (
-        <div className="diagnostic-start">
-          <div className="mini-stats">
+      <div className="skill-layout">
+        <div className="set-list">
+          {collection.sets.map((set) => (
+            <button
+              key={set[0]}
+              className={selectedSetName === set[0] ? "active" : ""}
+              type="button"
+              onClick={() => onSelectSet(set[0])}
+            >
+              <span>{set[3]}</span>
+              <strong>{set[0]}</strong>
+              <small>{set[1]}</small>
+            </button>
+          ))}
+        </div>
+
+        <div className="set-detail">
+          <span className="set-level">{selectedSet[3]}</span>
+          <h2>{selectedSet[0]}</h2>
+          <p>{selectedSet[1]}</p>
+          <div className="detail-grid">
             <div>
-              <span>题量</span>
-              <strong>{diagnosticItems.length}</strong>
+              <ListChecks size={22} />
+              <span>练习内容</span>
+              <strong>{selectedSet[2]}</strong>
             </div>
             <div>
-              <span>预计</span>
-              <strong>{diagnosticSummary.estimatedMinutes} min</strong>
-            </div>
-            <div>
-              <span>评分</span>
-              <strong>1-6</strong>
+              <Clock3 size={22} />
+              <span>建议方式</span>
+              <strong>{skill === "writing" ? "写完再改一轮" : "限时完成后复盘"}</strong>
             </div>
           </div>
-          <div className="blueprint-list">
-            {examBlueprint.map((skill) => (
-              <div key={skill.id}>
-                <Check size={16} />
-                <span>{skill.label}</span>
-                <small>{skill.official}</small>
-              </div>
-            ))}
-          </div>
-          <p className="diagnostic-note">{diagnosticSummary.reliability}</p>
-          <div className="action-row">
-            <button className="button primary" type="button" onClick={onStart}>
-              开始水平测试
-              <ArrowRight size={17} />
-            </button>
-            <button className="button secondary" type="button" onClick={onReset}>
-              <RefreshCw size={16} />
-              重新开始
-            </button>
+          <div className="practice-note">
+            <CheckCircle2 size={24} />
+            <span>
+              完成后进入模拟考，把专项练习放回真实考试节奏里检查。
+            </span>
           </div>
         </div>
-      ) : (
-        <div className="question-area">
-          <div className="question-meta">
-            <span>{activeItem.title}</span>
+      </div>
+    </section>
+  );
+}
+
+function MockExam({
+  sectionIndex,
+  questionIndex,
+  answers,
+  marked,
+  timeRemaining,
+  audioPlaying,
+  onSetAudioPlaying,
+  onAnswer,
+  onToggleMark,
+  onSetQuestion,
+  onPrevious,
+  onNext,
+  onSectionChange,
+  onFinish,
+  onExit,
+}) {
+  const section = mockSections[sectionIndex];
+  const questions = flattenQuestions(section);
+  const question = questions[questionIndex];
+  const answer = answers[question.id];
+  const answeredCount = questions.filter((item) =>
+    item.type === "choice" ? answers[item.id] !== undefined : Boolean(answers[item.id]?.trim()),
+  ).length;
+
+  return (
+    <div className="exam-shell">
+      <header className="exam-header">
+        <div>
+          <strong>Jennifer TOEFL Studio</strong>
+          <span>模拟机考界面</span>
+        </div>
+        <div className="exam-section-tabs">
+          {mockSections.map((item, index) => (
+            <button
+              key={item.id}
+              className={index === sectionIndex ? "active" : ""}
+              type="button"
+              onClick={() => onSectionChange(index)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+        <div className="exam-timer">
+          <Clock3 size={24} />
+          <span>{formatTime(timeRemaining)}</span>
+        </div>
+        <button className="exam-exit" type="button" onClick={onExit}>
+          退出
+        </button>
+      </header>
+
+      <main className="exam-main">
+        <section className="material-pane">
+          <div className="pane-toolbar">
             <span>
-              <Clock3 size={14} />
-              {activeItem.time}
+              {section.english} · {question.block.title}
             </span>
+            <strong>
+              {answeredCount} / {questions.length}
+            </strong>
+          </div>
+          <p className="directions">{section.instruction}</p>
+          <Material block={question.block} audioPlaying={audioPlaying} onSetAudioPlaying={onSetAudioPlaying} />
+        </section>
+
+        <section className="question-pane">
+          <div className="question-topline">
             <span>
-              题目 {activeIndex + 1} / {diagnosticItems.length}
+              Question {questionIndex + 1} of {questions.length}
             </span>
+            <button
+              className={marked[question.id] ? "mark-button active" : "mark-button"}
+              type="button"
+              onClick={() => onToggleMark(question.id)}
+            >
+              <Flag size={20} />
+              Mark for Review
+            </button>
           </div>
 
-          {activeItem.audioCue ? (
-            <div className="audio-strip">
-              <button type="button" onClick={onShowTranscript} aria-label="Play listening sample">
-                <Play size={17} />
-              </button>
-              <div>
-                <strong>{activeItem.audioCue}</strong>
-                <div className="wave-bars" aria-hidden="true">
-                  {Array.from({ length: 28 }).map((_, index) => (
-                    <span key={index} style={{ height: `${8 + ((index * 7) % 22)}px` }} />
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : null}
+          <h1>{question.stem}</h1>
 
-          {showTranscript && activeItem.transcript ? (
-            <p className="transcript">{activeItem.transcript}</p>
-          ) : null}
-
-          <p className="prompt">{activeItem.prompt}</p>
-          <h3>{activeItem.question}</h3>
-
-          {activeItem.type === "choice" ? (
-            <div className="options">
-              {activeItem.options.map((option, index) => (
+          {question.type === "choice" ? (
+            <div className="answer-options">
+              {question.options.map((option, index) => (
                 <button
                   key={option}
-                  className={activeResponse === index ? "selected" : ""}
+                  className={answer === index ? "selected" : ""}
                   type="button"
-                  onClick={() => onUpdate(activeItem.id, index)}
+                  onClick={() => onAnswer(question.id, index)}
                 >
                   <span>{String.fromCharCode(65 + index)}</span>
-                  {option}
+                  <p>{option}</p>
                 </button>
               ))}
             </div>
           ) : (
-            <div className="open-response">
+            <div className="writing-box">
               <textarea
-                value={activeResponse || ""}
-                onChange={(event) => onUpdate(activeItem.id, event.target.value)}
-                placeholder="Write the answer you would say or submit..."
-                rows={7}
+                value={answer || ""}
+                onChange={(event) => onAnswer(question.id, event.target.value)}
+                placeholder="Type your response here..."
               />
-              <div className="response-metrics">
-                <span>{wordCount(activeResponse)} words</span>
-                <span>目标 {activeItem.minWords}+ words</span>
-                <span>{activeItem.concept}</span>
+              <div>
+                <span>{wordCount(answer)} words</span>
+                <span>Target {question.minWords}+ words</span>
               </div>
             </div>
           )}
+        </section>
 
-          <div className="question-footer">
-            <span>{activeItem.concept}</span>
-            <button
-              className="button primary"
-              type="button"
-              disabled={!isAnswered}
-              onClick={onNext}
-            >
-              {activeIndex === diagnosticItems.length - 1 ? "完成诊断" : "下一题"}
-              <ChevronRight size={17} />
-            </button>
+        <aside className="review-rail" aria-label="Question navigator">
+          <strong>Review</strong>
+          <div className="question-grid">
+            {questions.map((item, index) => {
+              const isAnswered =
+                item.type === "choice"
+                  ? answers[item.id] !== undefined
+                  : Boolean(answers[item.id]?.trim());
+              return (
+                <button
+                  key={item.id}
+                  className={[
+                    index === questionIndex ? "active" : "",
+                    isAnswered ? "answered" : "",
+                    marked[item.id] ? "marked" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  type="button"
+                  onClick={() => {
+                    onSetQuestion(index);
+                    onSetAudioPlaying(false);
+                  }}
+                >
+                  {index + 1}
+                </button>
+              );
+            })}
+          </div>
+          <button className="submit-button" type="button" onClick={onFinish}>
+            交卷
+          </button>
+        </aside>
+      </main>
+
+      <footer className="exam-footer">
+        <button className="outline-button" type="button" onClick={onPrevious} disabled={questionIndex === 0}>
+          <ArrowLeft size={20} />
+          上一题
+        </button>
+        <div>
+          <span>{section.label}</span>
+          <strong>
+            {question.block.type === "audio" ? "听力音频只播放，不显示原文" : question.skill}
+          </strong>
+        </div>
+        <button className="primary-button" type="button" onClick={onNext}>
+          {sectionIndex === mockSections.length - 1 && questionIndex === questions.length - 1
+            ? "完成考试"
+            : "下一题"}
+          <ArrowRight size={20} />
+        </button>
+      </footer>
+    </div>
+  );
+}
+
+function Material({ block, audioPlaying, onSetAudioPlaying }) {
+  if (block.type === "audio") {
+    return (
+      <div className="audio-material">
+        <div className="audio-card">
+          <button type="button" onClick={() => onSetAudioPlaying(!audioPlaying)}>
+            {audioPlaying ? <Pause size={26} /> : <Play size={26} />}
+          </button>
+          <div>
+            <span>{block.audioCue}</span>
+            <strong>{audioPlaying ? "Playing" : "Ready"} · {block.duration}</strong>
           </div>
         </div>
-      )}
-    </section>
-  );
-}
-
-function ProfilePanel({ profile, projectedTotal }) {
-  const points = radarPoints(profile);
-
-  return (
-    <section className="panel profile-panel">
-      <div className="panel-head">
-        <div>
-          <h2>能力画像</h2>
-          <p>按 ETS 新版 1-6 分制估算。</p>
-        </div>
-        <div className="total-score">
-          <span>总分预估</span>
-          <strong>{projectedTotal}</strong>
-        </div>
-      </div>
-
-      <div className="radar-wrap">
-        <svg viewBox="0 0 220 220" aria-label="四科能力雷达图">
-          <polygon className="radar-grid" points="110,28 192,110 110,192 28,110" />
-          <polygon className="radar-grid inner" points="110,62 158,110 110,158 62,110" />
-          <line x1="110" y1="28" x2="110" y2="192" />
-          <line x1="28" y1="110" x2="192" y2="110" />
-          <polygon className="radar-score" points={points} />
-          {examBlueprint.map((skill) => {
-            const point = radarLabel(skill.id);
-            return (
-              <text key={skill.id} x={point.x} y={point.y} textAnchor={point.anchor}>
-                {skill.label}
-              </text>
-            );
-          })}
-        </svg>
-        <div className="score-list">
-          {examBlueprint.map((skill) => (
-            <div key={skill.id}>
-              <span>{skill.label}</span>
-              <strong>{profile[skill.id].score.toFixed(1)}</strong>
-              <small>{getBand(profile[skill.id].score)}</small>
-            </div>
+        <div className="waveform" aria-hidden="true">
+          {Array.from({ length: 54 }).map((_, index) => (
+            <span key={index} style={{ height: `${18 + ((index * 13) % 58)}px` }} />
           ))}
         </div>
+        <div className="audio-lock">
+          <Volume2 size={24} />
+          <p>Listening transcript is hidden during mock exam mode.</p>
+        </div>
       </div>
-    </section>
+    );
+  }
+
+  if (block.type === "writing") {
+    return (
+      <div className="writing-material">
+        <span>{block.title}</span>
+        <h2>Prompt</h2>
+        <p>{block.prompt}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="passage-material">
+      <h2>{block.title}</h2>
+      {block.passage.split("\n\n").map((paragraph) => (
+        <p key={paragraph}>{paragraph}</p>
+      ))}
+    </div>
   );
 }
 
-function radarPoints(profile) {
-  const center = 110;
-  const max = 82;
-  const value = (skill) => (profile[skill].score / 6) * max;
-  return [
-    `${center},${center - value("reading")}`,
-    `${center + value("listening")},${center}`,
-    `${center},${center + value("speaking")}`,
-    `${center - value("writing")},${center}`,
-  ].join(" ");
-}
+function ResultsScreen({ answers, onRestart, onBackHome }) {
+  const results = mockSections.map((section) => ({ ...section, result: scoreSection(section, answers) }));
+  const averageBand =
+    results.reduce((sum, section) => sum + section.result.band, 0) / Math.max(results.length, 1);
 
-function radarLabel(skill) {
-  const labels = {
-    reading: { x: 110, y: 18, anchor: "middle" },
-    listening: { x: 203, y: 114, anchor: "start" },
-    speaking: { x: 110, y: 212, anchor: "middle" },
-    writing: { x: 17, y: 114, anchor: "end" },
-  };
-  return labels[skill];
-}
-
-function TrainingPlan({ profile, weakest }) {
   return (
-    <section className="panel training-panel">
-      <div className="panel-head compact">
-        <div>
-          <h2>专项提升计划</h2>
-          <p>根据诊断自动排序，先补最影响提分的环节。</p>
+    <div className="results-shell">
+      <section className="results-panel">
+        <div className="results-head">
+          <CheckCircle2 size={40} />
+          <div>
+            <h1>模拟考完成</h1>
+            <p>这是站内原创仿真题的即时估算。正式分数请以 ETS 官方 TestReady/TPO 或正式考试为准。</p>
+          </div>
+          <strong>{averageBand.toFixed(1)}</strong>
         </div>
-        <button className="text-button" type="button">
-          查看详细计划
-          <ArrowRight size={16} />
-        </button>
-      </div>
 
-      <div className="plan-list">
-        {examBlueprint
-          .map((skill) => ({ ...skill, score: profile[skill.id].score }))
-          .sort((a, b) => a.score - b.score)
-          .map((skill, index) => {
-            const practice = practiceLibrary[skill.id];
+        <div className="result-grid">
+          {results.map((section) => {
+            const Icon = sectionIcons[section.id];
             return (
-              <article className="plan-row" key={skill.id}>
-                <div className="rank" style={{ backgroundColor: skillColors[skill.id] }}>
-                  {index + 1}
-                </div>
+              <article key={section.id}>
+                <Icon size={31} />
+                <span>{section.label}</span>
+                <strong>{section.result.band.toFixed(1)}</strong>
+                <p>
+                  {section.result.answered} / {section.result.total} answered
+                </p>
                 <div>
-                  <h3>
-                    {skill.label}: {practice.title}
-                  </h3>
-                  <p>{skill.target}</p>
-                </div>
-                <div className="row-progress">
-                  <div>
-                    <span style={{ width: `${(skill.score / 6) * 100}%` }} />
-                  </div>
-                  <strong>{skill.score.toFixed(1)}</strong>
+                  <span style={{ width: `${section.result.ratio * 100}%` }} />
                 </div>
               </article>
             );
           })}
-      </div>
-
-      <div className="weakness-callout">
-        <Sparkles size={18} />
-        <span>
-          先抓 {weakest.map((skill) => skill.label).join(" + ")}，更容易把总分预估拉上去。
-        </span>
-      </div>
-    </section>
-  );
-}
-
-function PracticeBankPanel({ activeSkill, selectedTrainingModule, onSelectSkill }) {
-  return (
-    <section className="panel bank-panel">
-      <div className="panel-head compact bank-head">
-        <div>
-          <h2>专项训练池</h2>
-          <p>
-            {selectedTrainingModule.bankCount} 个 {activeSkill} 任务，覆盖：
-            {selectedTrainingModule.coverage}
-          </p>
         </div>
-        <div className="bank-tabs" role="tablist" aria-label="Training bank skill tabs">
-          {examBlueprint.map((skill) => (
-            <button
-              key={skill.id}
-              className={activeSkill === skill.id ? "active" : ""}
-              type="button"
-              onClick={() => onSelectSkill(skill.id)}
-            >
-              {skill.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      <div className="bank-grid">
-        {selectedTrainingModule.tasks.slice(0, 6).map((task) => (
-          <article key={task.name} className="bank-task">
-            <div>
-              <ClipboardCheck size={17} />
-              <span>{task.level}</span>
-            </div>
-            <h3>{task.name}</h3>
-            <p>{task.prompt}</p>
-            <small>{task.minutes} min</small>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function TaskPreview({ activeSkill, selectedPractice, onSelectSkill }) {
-  return (
-    <section className="panel task-panel">
-      <div className="task-tabs" role="tablist" aria-label="TOEFL task preview tabs">
-        {examBlueprint.map((skill) => (
-          <button
-            key={skill.id}
-            className={activeSkill === skill.id ? "active" : ""}
-            type="button"
-            onClick={() => onSelectSkill(skill.id)}
-          >
-            {skill.label}
+        <div className="results-actions">
+          <button className="primary-button" type="button" onClick={onRestart}>
+            <RotateCcw size={22} />
+            再做一次模拟考
           </button>
-        ))}
-      </div>
-
-      <div className="task-content">
-        <div>
-          <span className="task-label">{selectedPractice.title}</span>
-          <h2>{selectedPractice.task}</h2>
-          <p>{selectedPractice.drill}</p>
-        </div>
-        <div className="rubric-list">
-          {selectedPractice.rubric.map((item) => (
-            <span key={item}>{item}</span>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CoachPanel({ profile, weakest, progress }) {
-  const leadingWeakness = weakest[0];
-  const score = profile[leadingWeakness.id].score;
-  const skillPractice = practiceLibrary[leadingWeakness.id];
-
-  return (
-    <aside className="coach-column" aria-label="Parent coaching notes">
-      <img
-        className="study-image"
-        src={`${import.meta.env.BASE_URL}study-studio.png`}
-        alt="Student studying TOEFL listening and notes at a bright desk"
-      />
-
-      <section className="panel coach-panel">
-        <div className="coach-head">
-          <Target size={20} />
-          <h2>家长教练建议</h2>
-        </div>
-        <div className="coach-advice">
-          <article>
-            <strong>优先提升 {leadingWeakness.label}</strong>
-            <p>
-              当前估算 {score.toFixed(1)} / 6。今天只盯一个动作：
-              {skillPractice.drill}
-            </p>
-          </article>
-          <article>
-            <strong>训练记录方式</strong>
-            <p>每次练习只记录题型、错因、下一次修正动作，避免只堆题量。</p>
-          </article>
-          <article>
-            <strong>考试贴近度</strong>
-            <p>36 题诊断按 TOEFL iBT 分区与 1-6 分制设计，题目为原创 TOEFL-style。</p>
-          </article>
+          <button className="outline-button" type="button" onClick={onBackHome}>
+            回到题库
+          </button>
+          <a href="https://www.cn.ets.org/toefl/china/toefl/toefl-testready.html" target="_blank" rel="noreferrer">
+            ETS TestReady
+            <ExternalLink size={18} />
+          </a>
         </div>
       </section>
-
-      <section className="panel data-panel">
-        <div className="data-grid">
-          <div>
-            <Clock3 size={18} />
-            <strong>{progress}%</strong>
-            <span>诊断完成</span>
-          </div>
-          <div>
-            <Check size={18} />
-            <strong>48</strong>
-            <span>专项任务</span>
-          </div>
-          <div>
-            <BarChart3 size={18} />
-            <strong>1-6</strong>
-            <span>单科估分</span>
-          </div>
-        </div>
-
-        <div className="week-strip" aria-label="Weekly TOEFL plan">
-          {weeklyBlocks.map((block) => (
-            <button key={block.day} type="button" title={`${block.focus}: ${block.minutes} min`}>
-              <span>{block.day}</span>
-              <strong>{block.minutes}</strong>
-            </button>
-          ))}
-        </div>
-
-        <a
-          className="official-note"
-          href="https://www.ets.org/toefl/test-takers/ibt/about/content.html"
-          target="_blank"
-          rel="noreferrer"
-        >
-          参考 ETS TOEFL iBT Test Content
-          <ExternalLink size={15} />
-        </a>
-      </section>
-    </aside>
+    </div>
   );
 }
 
